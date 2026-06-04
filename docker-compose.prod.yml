@@ -1,0 +1,27 @@
+# Production overrides — apply on top of docker-compose.yml
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+
+services:
+
+  api:
+    build:
+      target: production
+    command: >
+      gunicorn app.main:app
+      -w 4
+      -k uvicorn.workers.UvicornWorker
+      --bind 0.0.0.0:8000
+      --timeout 120
+      --access-logfile -
+    volumes: []        # no source mounts in production
+    restart: always
+
+  frontend:
+    build:
+      target: production
+    command: []        # nginx takes over (defined in Dockerfile CMD)
+    volumes: []
+    ports:
+      - "80:80"
+    restart: always

@@ -1,0 +1,39 @@
+# Environment
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyc
+.Python
+venv/
+env/
+.venv/
+dist/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Docker
+.docker/
+
+# Kubernetes secrets (never commit real values)
+k8s/base/secrets.yaml
+
+# IDE
+.vscode/settings.json
+.idea/
+*.swp
+
+# macOS
+.DS_Store
+
+# MinIO / S3 local data
+minio_data/
