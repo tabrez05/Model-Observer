@@ -5,7 +5,7 @@ bases:
   - ../../base
 
 images:
-  - name: ghcr.io/YOUR_GITHUB_USER/ml-tracker-api
+  - name: ghcr.io/tabrez05/model-observer-api
     newTag: latest
-  - name: ghcr.io/YOUR_GITHUB_USER/ml-tracker-frontend
+  - name: ghcr.io/tabrez05/model-observer-frontend
     newTag: latest

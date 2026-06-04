@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: ghcr.io/YOUR_GITHUB_USER/ml-tracker-frontend:latest
+          image: ghcr.io/tabrez05/model-observer-frontend:latest
           ports:
             - containerPort: 80
           readinessProbe:

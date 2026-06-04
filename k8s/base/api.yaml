@@ -14,7 +14,7 @@ spec:
       restartPolicy: OnFailure
       containers:
         - name: migrate
-          image: ghcr.io/YOUR_GITHUB_USER/ml-tracker-api:latest
+          image: ghcr.io/tabrez05/model-observer-api:latest
           command: ["alembic", "upgrade", "head"]
           env:
             - name: DATABASE_URL
@@ -40,7 +40,7 @@ spec:
     spec:
       containers:
         - name: api
-          image: ghcr.io/YOUR_GITHUB_USER/ml-tracker-api:latest
+          image: ghcr.io/tabrez05/model-observer-api:latest
           ports:
             - containerPort: 8000
           env:
