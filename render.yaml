@@ -1,12 +1,14 @@
-# Render Blueprint — deploys API + Frontend for free
+# Render Blueprint — deploys API + Frontend + PostgreSQL + Redis for free
 # Docs: https://render.com/docs/blueprint-spec
-#
-# Setup:
-#   1. Go to https://dashboard.render.com/blueprints
-#   2. Connect your GitHub repo (tabrez05/Model-Observer)
-#   3. Render reads this file and creates all services automatically
 
 services:
+
+  # ── Redis (Key Value) ──────────────────────────────────────────────────────
+  - type: redis
+    name: model-observer-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []            # only allow internal Render network
 
   # ── FastAPI backend ────────────────────────────────────────────────────────
   - type: web
@@ -14,7 +16,6 @@ services:
     runtime: docker
     dockerfilePath: ./backend/Dockerfile
     dockerContext: ./backend
-    dockerCommand: ""          # uses Dockerfile CMD (gunicorn production stage)
     plan: free
     healthCheckPath: /api/v1/health
     envVars:
@@ -28,40 +29,31 @@ services:
           type: redis
           property: connectionString
       - key: SECRET_KEY
-        generateValue: true    # Render auto-generates a secure random value
+        generateValue: true
       - key: ENVIRONMENT
         value: production
       - key: ALLOWED_ORIGINS
         value: https://model-observer-frontend.onrender.com
       - key: MINIO_ENDPOINT
-        value: ""              # MinIO not available on free tier; disable artifact uploads
+        value: ""
     buildFilter:
       paths:
         - backend/**
 
-  # ── React frontend ─────────────────────────────────────────────────────────
+  # ── React frontend (nginx) ─────────────────────────────────────────────────
   - type: web
     name: model-observer-frontend
     runtime: docker
     dockerfilePath: ./frontend/Dockerfile
     dockerContext: ./frontend
     plan: free
-    envVars:
-      - key: VITE_API_BASE_URL
-        fromService:
-          name: model-observer-api
-          type: web
-          property: host
     buildFilter:
       paths:
         - frontend/**
 
 databases:
-  # ── PostgreSQL (free 90-day trial, then $7/mo) ─────────────────────────────
+  # ── PostgreSQL ─────────────────────────────────────────────────────────────
   - name: model-observer-db
     plan: free
     databaseName: ml_tracker
     user: ml_tracker
-
-# Note: Render free Redis is via Upstash integration — add manually after deploy:
-# Dashboard → model-observer-api → Environment → Add REDIS_URL from Upstash
