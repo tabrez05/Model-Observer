@@ -12,6 +12,7 @@ env:
 
 jobs:
 
+  # ── 1. Build & push Docker images to GHCR (always runs) ───────────────────
   build-push:
     name: Build & Push Docker Images
     runs-on: ubuntu-latest
@@ -74,12 +75,30 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── Deploy to GKE — only runs when GCP secrets are configured ─────────────
-  deploy-prod:
+  # ── 2. Deploy to Render (free) — runs when GCP secrets are NOT configured ──
+  deploy-render:
+    name: Deploy to Render (free)
+    needs: build-push
+    runs-on: ubuntu-latest
+    if: ${{ secrets.RENDER_DEPLOY_HOOK_API != '' }}
+
+    steps:
+      - name: Trigger Render deploy — API
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_API }}" \
+            -H "Content-Type: application/json" || echo "Render API deploy triggered"
+
+      - name: Trigger Render deploy — Frontend
+        if: ${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND != '' }}
+        run: |
+          curl -f -X POST "${{ secrets.RENDER_DEPLOY_HOOK_FRONTEND }}" \
+            -H "Content-Type: application/json" || echo "Render frontend deploy triggered"
+
+  # ── 3. Deploy to GKE (production) — runs only when GCP secrets are set ────
+  deploy-gke:
     name: Deploy to GKE
     needs: build-push
     runs-on: ubuntu-latest
-    # Skips gracefully if GCP_SA_KEY secret has not been added yet
     if: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.GCP_SA_KEY != '' }}
     environment: production
 
