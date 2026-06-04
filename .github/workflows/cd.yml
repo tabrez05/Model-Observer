@@ -43,7 +43,7 @@ jobs:
             type=sha,prefix=sha-,format=short
 
       - name: Build & push API image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./backend
           target: production
@@ -64,7 +64,7 @@ jobs:
             type=sha,prefix=sha-,format=short
 
       - name: Build & push Frontend image
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           context: ./frontend
           target: production
@@ -74,12 +74,13 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-  # ── Deploy to GKE (runs only on version tags v*.*.*) ──────────────────────
+  # ── Deploy to GKE — only runs when GCP secrets are configured ─────────────
   deploy-prod:
     name: Deploy to GKE
     needs: build-push
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v')
+    # Skips gracefully if GCP_SA_KEY secret has not been added yet
+    if: ${{ startsWith(github.ref, 'refs/tags/v') && secrets.GCP_SA_KEY != '' }}
     environment: production
 
     steps:
@@ -100,8 +101,8 @@ jobs:
         run: |
           cd k8s/overlays/prod
           kustomize edit set image \
-            ghcr.io/${{ github.repository_owner }}/ml-tracker-api=ghcr.io/${{ github.repository_owner }}/ml-tracker-api:${{ github.ref_name }} \
-            ghcr.io/${{ github.repository_owner }}/ml-tracker-frontend=ghcr.io/${{ github.repository_owner }}/ml-tracker-frontend:${{ github.ref_name }}
+            ghcr.io/${{ github.repository_owner }}/model-observer-api=ghcr.io/${{ github.repository_owner }}/model-observer-api:${{ github.ref_name }} \
+            ghcr.io/${{ github.repository_owner }}/model-observer-frontend=ghcr.io/${{ github.repository_owner }}/model-observer-frontend:${{ github.ref_name }}
 
       - name: Apply manifests
         run: kubectl apply -k k8s/overlays/prod
